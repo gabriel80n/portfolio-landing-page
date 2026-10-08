@@ -149,3 +149,20 @@ Preparação local validada: Terraform bootstrap/site/release/pipeline, formata�
 Estimativa de planejamento para baixo tráfego e cerca de 20 deploys/mês: aproximadamente US$2-5/mês antes de créditos/impostos, dependendo de duração dos builds, tráfego e armazenamento. Não é limite de cobrança. Uma chave KMS para logs custa inicialmente US$1/mês, com custo adicional em futuras rotações; CodeBuild/CodePipeline têm cobrança por uso e franquias. Certificado ACM público não exportável não tem custo de emissão. O primeiro bootstrap isolado tem apenas custos mínimos por armazenamento/operações S3; a estimativa total inclui etapas posteriores.
 
 Referências de preço: [CodeBuild](https://aws.amazon.com/codebuild/pricing/), [CodePipeline](https://aws.amazon.com/codepipeline/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [S3](https://aws.amazon.com/s3/pricing/), [CloudFront](https://aws.amazon.com/cloudfront/pricing/pay-as-you-go/) e [ACM](https://aws.amazon.com/certificate-manager/pricing/).
+
+### Recursos de produ??o e opera??o
+
+| Recurso | Identificador |
+| --- | --- |
+| Site | https://gabrielnicholas.site |
+| Alias | https://www.gabrielnicholas.site |
+| CloudFront | `E1WQ8HLGQ5B5U8` / `d2vitzk931hule.cloudfront.net` |
+| Bucket site | `portfolio-landing-page-site-052229332886` |
+| Bucket state | `portfolio-landing-page-state-052229332886` |
+| Bucket artefatos | `portfolio-landing-page-artifacts-052229332886` |
+| Certificado ACM (us-east-1) | `379f6447-6116-4be5-a44c-5404bcb1ef59` |
+| Conex?o GitHub (us-east-2) | `c323a6be-600f-432d-8135-05548d8cff36` |
+
+[Pipeline no console AWS](https://us-east-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/portfolio-landing-page/view?region=us-east-2). Cada push em main inicia Source e ValidateAndPlan. Na etapa Approve, confira o commit e os resumos de release/site nos logs privados ou BuildOutput antes de aprovar. Deploy aplica os planos salvos e verifica o dom?nio. A autoriza??o de ativa??o inicial n?o dispensa a aprova??o dos pr?ximos planos.
+
+O pipeline administra somente releases e promo??o do site. Altera??es em bootstrap, permiss?es ou pipeline devem passar por planejamento administrativo Terraform e aprova??o pr?pria. Para rollback, use um commit j? publicado como release_id no state de site, gere e confira o plano, aprove e aplique o plano salvo. N?o reaplique o state de uma release anterior com arquivos de outro commit.
