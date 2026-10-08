@@ -271,3 +271,53 @@
     gap: 8px;
   }
 }
+
+.availability-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 24px;
+  color: var(--accent);
+  font-size: 12px;
+}
+.availability-link span {
+  width: 7px;
+  height: 7px;
+  background: currentColor;
+  border-radius: 50%;
+}
+.availability-link:hover {
+  color: var(--accent-hover);
+}
+.hero-experience {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 32px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  max-width: 420px;
+}
+.hero-experience strong {
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  color: var(--accent);
+}
+.hero-experience span {
+  font-size: 12px;
+  font-weight: 600;
+}
+.hero-experience p {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+@media (max-width: 900px) {
+  .hero-actions {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+}

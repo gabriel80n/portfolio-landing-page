@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import ProjectShowcase from '@/components/project-showcase.component.vue'
 import ContactForm from '@/components/contact-form.component.vue'
 import { localeOptions, profile } from '@/features/portfolio/portfolio.content'
 import { usePortfolioLocale } from '@/hooks/use-portfolio-locale.composable'
@@ -67,6 +68,9 @@ const currentYear = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(ne
         <div class="hero-copy">
           <Transition name="copy" mode="out-in">
             <div :key="locale">
+              <a class="availability-link hero-enter" href="#contact"
+                ><span aria-hidden="true"></span>{{ copy.hero.availability }}</a
+              >
               <p class="eyebrow hero-enter">{{ copy.hero.role }}</p>
               <h1 id="hero-title" class="hero-enter">
                 <span>{{ copy.hero.firstLine }}</span>
@@ -75,11 +79,18 @@ const currentYear = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(ne
               <p class="hero-description hero-enter">{{ copy.hero.description }}</p>
               <div class="hero-actions hero-enter">
                 <a class="button button-primary" href="#contact"
-                  >{{ copy.nav.contact }} <span aria-hidden="true">↗</span></a
+                  >{{ copy.hero.cta }} <span aria-hidden="true">↗</span></a
                 >
                 <a class="text-link" :href="profile.resume" download
                   >{{ copy.hero.resume }} <span aria-hidden="true">↓</span></a
                 >
+              </div>
+              <div class="hero-experience hero-enter">
+                <strong>4+</strong>
+                <div>
+                  <span>{{ copy.hero.experience }}</span>
+                  <p>{{ copy.hero.value }}</p>
+                </div>
               </div>
             </div>
           </Transition>
@@ -90,9 +101,11 @@ const currentYear = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(ne
           <figure class="portrait-frame">
             <img
               :src="profile.portrait"
+              :srcset="profile.portraitSrcset"
+              sizes="(max-width: 680px) 250px, (max-width: 900px) 240px, (max-width: 1180px) 290px, 360px"
               :alt="copy.hero.portraitAlt"
-              width="3544"
-              height="4725"
+              width="1086"
+              height="1449"
               fetchpriority="high"
             />
           </figure>
@@ -195,62 +208,7 @@ const currentYear = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(ne
             <p>{{ copy.projects.foundationDescription }}</p>
           </div>
         </aside>
-        <div class="project-grid">
-          <article
-            v-for="project in copy.projects.items"
-            :id="'project-' + project.id"
-            :key="project.id"
-            class="project"
-            :class="'project--' + project.status"
-            data-reveal
-          >
-            <figure v-if="project.image" class="project-preview">
-              <img
-                :src="project.image"
-                :alt="project.imageAlt"
-                loading="lazy"
-                decoding="async"
-                width="1440"
-                height="1500"
-              />
-            </figure>
-            <div class="project-heading">
-              <h3>{{ project.name }}</h3>
-              <span class="project-status">{{
-                project.status === 'implemented' ? copy.projects.implemented : copy.projects.planned
-              }}</span>
-            </div>
-            <p class="project-category">{{ project.category }}</p>
-            <p class="project-description">{{ project.description }}</p>
-            <ul class="project-stack" :aria-label="project.name">
-              <li v-for="technology in project.stack" :key="technology" translate="no">
-                {{ technology }}
-              </li>
-            </ul>
-            <p v-if="project.id !== 'iam'" class="project-identity">
-              {{
-                project.status === 'implemented'
-                  ? copy.projects.authIntegrated
-                  : copy.projects.authPlanned
-              }}
-            </p>
-            <details class="project-details">
-              <summary>{{ copy.projects.details }} <span aria-hidden="true">+</span></summary>
-              <div>
-                <h4>{{ copy.projects.focus }}</h4>
-                <p>{{ project.focus }}</p>
-              </div>
-            </details>
-            <a
-              v-if="localDemonstration && project.demoUrl"
-              class="text-link project-demo"
-              :href="project.demoUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              >{{ copy.projects.demo }} <span aria-hidden="true">↗</span></a
-            >
-          </article>
-        </div>
+        <ProjectShowcase :copy="copy.projects" :local-demonstration="localDemonstration" />
       </section>
 
       <section

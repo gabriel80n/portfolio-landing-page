@@ -1,0 +1,10 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 24
+    commands:
+      - bash infra/pipeline/install-terraform.sh
+  build:
+    commands:
+      - bash infra/pipeline/deploy.sh

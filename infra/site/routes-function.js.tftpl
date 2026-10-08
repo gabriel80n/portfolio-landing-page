@@ -1,0 +1,7 @@
+function handler(event) {
+  var request = event.request;
+  if (request.uri.indexOf("/releases/") === 0) return request;
+  if (request.uri.indexOf(".") === -1) request.uri = "/index.html";
+  request.uri = "/releases/${release_id}" + request.uri;
+  return request;
+}

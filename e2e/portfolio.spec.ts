@@ -46,7 +46,7 @@ test('validates the form and distinguishes implemented projects from planned wor
     page.getByRole('heading', { name: 'IAM Portfolio connects the projects.' }),
   ).toBeVisible()
   await expect(page.locator('#project-reservas')).toContainText('Authentication by IAM Portfolio')
-  await page.locator('summary').first().click()
+  await page.locator('#select-project-iam').click()
   await expect(
     page.getByText('What this project demonstrates', { exact: true }).first(),
   ).toBeVisible()
@@ -80,4 +80,68 @@ test('keeps all languages within the viewport and supports the mobile menu', asy
   await page.getByRole('navigation').getByRole('link', { name: 'Projects', exact: true }).click()
   await expect(menu).toHaveAttribute('aria-expanded', 'false')
   await expect(page).toHaveURL(/#projects$/)
+})
+
+test('expands a selected project below the gallery, switches language and restores focus', async ({
+  page,
+}) => {
+  await page.goto('/?lang=pt-BR')
+  await expect(page.getByRole('link', { name: 'Aberto a oportunidades' })).toBeVisible()
+  await expect(page.locator('.hero-experience')).toContainText('4+')
+  await expect(
+    page.getByRole('link', { name: 'Vamos trabalhar juntos', exact: false }),
+  ).toBeVisible()
+  const previewWidth = await page
+    .locator('#project-iam .project-preview')
+    .evaluate((el) => el.getBoundingClientRect().width)
+  await page.locator('#select-project-iam').focus()
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/project=iam/)
+  const panel = page.locator('#project-detail')
+  await expect(panel.getByRole('heading', { name: 'IAM Portfolio', exact: true })).toBeFocused()
+  await expect(panel).toContainText('Logins repetidos')
+  expect(
+    await panel.locator('figure').evaluate((el) => el.getBoundingClientRect().width),
+  ).toBeGreaterThan(previewWidth)
+  await page.evaluate(async () => {
+    await Promise.all(
+      document.getAnimations().map((animation) => animation.finished.catch(() => {})),
+    )
+  })
+  await page.screenshot({ path: 'test-results/project-expanded-desktop.png', fullPage: false })
+  await page.getByRole('button', { name: 'English', exact: true }).click()
+  await expect(panel).toContainText('Repeated sign-ins')
+  await expect(page).toHaveURL(/project=iam/)
+  await panel.getByRole('button', { name: 'Back to projects', exact: false }).click()
+  await expect(panel).toHaveCount(0)
+  await expect(page.locator('#select-project-iam')).toBeFocused()
+  await page.locator('#select-project-reservas').click()
+  await expect(page.locator('#project-detail')).toContainText('SMTP')
+  await expect(page.locator('#project-detail')).not.toContainText('Google Calendar')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('#select-project-reservas')).toBeFocused()
+})
+
+test('supports planned projects, direct links and the fallback on narrow screens', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'startViewTransition', { value: undefined })
+  })
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.goto('/?lang=pt-BR&project=importador')
+  await expect(page.locator('#project-detail')).toContainText('Jornada proposta')
+  await page.locator('#project-detail button').click()
+  await page.locator('#select-project-crm').click()
+  await expect(page.locator('#project-detail-title')).toBeFocused()
+  for (const lang of ['en', 'pt-BR', 'es']) {
+    await page.goto('/?lang=' + lang + '&project=reservas')
+    await expect(page.locator('#project-detail')).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320)
+  }
+  await page.screenshot({ path: 'test-results/project-expanded-mobile.png', fullPage: false })
+  await page.goto('/?project=unknown')
+  await expect(page.locator('#project-detail')).toHaveCount(0)
+  await expect(page.locator('.project')).toHaveCount(5)
 })

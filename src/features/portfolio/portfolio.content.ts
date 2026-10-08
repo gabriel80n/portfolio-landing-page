@@ -11,7 +11,9 @@ export const profile = {
   email: 'gabrielnpmoraes@hotmail.com',
   github: 'https://github.com/gabriel80n',
   linkedin: 'https://www.linkedin.com/in/gabriel80n',
-  portrait: '/images/gabriel-nicholas.jpg',
+  portrait: '/images/gabriel-nicholas-retouched.webp',
+  portraitSrcset:
+    '/images/gabriel-nicholas-retouched-360.webp 360w, /images/gabriel-nicholas-retouched-720.webp 720w, /images/gabriel-nicholas-retouched.webp 1086w',
   resume: '/documents/gabriel-nicholas-resume.pdf',
 }
 
@@ -32,6 +34,11 @@ const english = {
     label: 'Main navigation',
   },
   hero: {
+    availability: 'Open to work',
+    cta: 'Let’s work together',
+    experience: 'years building software',
+    value: 'Turning client challenges into useful software.',
+
     role: 'Backend focused. Full stack minded.',
     firstLine: 'Engineering.',
     secondLine: 'With character.',
@@ -83,6 +90,13 @@ const english = {
     ],
   },
   projects: {
+    explore: 'Explore project',
+    selected: 'Selected project',
+    close: 'Back to projects',
+    problemLabel: 'The problem',
+    workflowLabel: 'How it works',
+    plannedNote: 'Proposed workflow. This project is still planned.',
+
     title: 'Five projects.',
     titleAccent: 'One connected portfolio.',
     description:
@@ -108,6 +122,10 @@ const english = {
         category: 'The identity foundation',
         description:
           'A central account for the portfolio. Google sign-in, single sign-on and access managed independently for each project.',
+        problem:
+          'Repeated sign-ins and permissions scattered across applications make access difficult to manage.',
+        workflow:
+          'One account signs into multiple applications. Administrators manage each application’s access independently, while PKCE and audience checks protect the session.',
         focus:
           'OIDC / OAuth 2.0 with PKCE, rotating refresh tokens, audience isolation and transactional identity records in DynamoDB.',
         imageAlt:
@@ -118,11 +136,15 @@ const english = {
         status: 'implemented',
         image: '/images/room-reservations.png',
         demoUrl: 'http://localhost:5175',
-        stack: ['Vue', 'NestJS', 'DynamoDB', 'Google Calendar'],
+        stack: ['Vue', 'NestJS', 'DynamoDB', 'SMTP'],
         name: 'Room reservations',
         category: 'Availability becomes a real booking',
         description:
-          'Choose a room and a time, invite your team and follow the reservation. Calendar and SMTP notifications complete the workflow.',
+          'Choose a room and a time, invite your team and follow the reservation. SMTP notifications complete the workflow.',
+        problem:
+          'Teams need to see available rooms and reserve a time without double bookings, even when requests arrive together.',
+        workflow:
+          'Choose a room, select a free interval and invite participants by email. Confirm or cancel the reservation, then follow SMTP delivery status and retry failures without losing the booking.',
         focus:
           'DynamoDB transactions protect concurrent bookings. Idempotency and a durable outbox make retries safe. Authentication comes from IAM Portfolio.',
         imageAlt: 'Room reservations interface with availability slots and an optional guest form',
@@ -137,6 +159,10 @@ const english = {
         category: 'Files into useful data',
         description:
           'A planned CSV import workflow with validation per row, background processing and actionable error reports.',
+        problem:
+          'Large CSV files can contain invalid rows, and a slow import should not block the person uploading them.',
+        workflow:
+          'The planned flow uploads a file, validates rows and processes batches in the background. A report shows what succeeded and which rows need correction.',
         focus:
           'Idempotent processing, retries and a traceable import history. Authentication will use IAM Portfolio.',
         imageAlt: '',
@@ -151,6 +177,10 @@ const english = {
         category: 'Through an interface or an agent',
         description:
           'A planned CRM for customers, opportunities and follow-ups, with MCP tools for an AI agent.',
+        problem:
+          'Customer information and follow-ups need a consistent workflow, whether a person uses the interface or an AI agent.',
+        workflow:
+          'The planned CRM organizes customers, opportunities and tasks. HTTP and MCP entry points use the same business rules and permissions, with confirmation for writes and an audit trail.',
         focus:
           'The same rules and authorization through HTTP and MCP, with confirmed writes and an audit trail. Identity will come from IAM Portfolio.',
         imageAlt: '',
@@ -165,6 +195,10 @@ const english = {
         category: 'Deliveries you can follow',
         description:
           'A planned platform for signed events, visible delivery attempts and recovery when a destination fails.',
+        problem:
+          'Integrations fail when destinations are unavailable or events arrive more than once.',
+        workflow:
+          'The planned platform signs events, records delivery attempts and schedules bounded retries. Authorized replay lets operators recover failed deliveries with a visible history.',
         focus:
           'HMAC signatures, bounded retries, duplicate handling and authorized replay. Authentication will use IAM Portfolio.',
         imageAlt: '',
@@ -220,6 +254,11 @@ const portuguese: PortfolioCopy = {
     label: 'Navegação principal',
   },
   hero: {
+    availability: 'Aberto a oportunidades',
+    cta: 'Vamos trabalhar juntos',
+    experience: 'anos desenvolvendo software',
+    value: 'Transformando desafios de clientes em software que resolve.',
+
     role: 'Foco em backend. Visão full stack.',
     firstLine: 'Engenharia.',
     secondLine: 'Com personalidade.',
@@ -270,6 +309,13 @@ const portuguese: PortfolioCopy = {
     ],
   },
   projects: {
+    explore: 'Explorar projeto',
+    selected: 'Projeto selecionado',
+    close: 'Voltar aos projetos',
+    problemLabel: 'O problema',
+    workflowLabel: 'Como funciona',
+    plannedNote: 'Jornada proposta. Este projeto ainda está planejado.',
+
     title: 'Cinco projetos.',
     titleAccent: 'Um portfólio conectado.',
     description:
@@ -295,6 +341,10 @@ const portuguese: PortfolioCopy = {
         category: 'A base de identidade do portfólio',
         description:
           'Uma conta central para os projetos. Login com Google, sessão SSO e acesso administrado de forma independente em cada aplicação.',
+        problem:
+          'Logins repetidos e permissões espalhadas entre aplicações dificultam a gestão de acesso.',
+        workflow:
+          'Uma conta acessa vários projetos com sessão SSO. Administradores controlam o acesso de cada aplicação de forma independente, enquanto PKCE e validação de audiência protegem a sessão.',
         focus:
           'OIDC / OAuth 2.0 com PKCE, refresh tokens rotativos, isolamento de audiência e identidades transacionais no DynamoDB.',
         imageAlt:
@@ -305,11 +355,15 @@ const portuguese: PortfolioCopy = {
         status: 'implemented',
         image: '/images/room-reservations.png',
         demoUrl: 'http://localhost:5175',
-        stack: ['Vue', 'NestJS', 'DynamoDB', 'Google Calendar'],
+        stack: ['Vue', 'NestJS', 'DynamoDB', 'SMTP'],
         name: 'Reservas de salas',
         category: 'Da disponibilidade à reunião marcada',
         description:
-          'Escolha sala e horário, convide sua equipe e acompanhe a reserva. Google Calendar e notificações SMTP completam a jornada.',
+          'Escolha sala e horário, convide sua equipe e acompanhe a reserva. Notificações SMTP completam a jornada.',
+        problem:
+          'Equipes precisam encontrar salas livres e reservar horários sem duplicidade, mesmo com pedidos simultâneos.',
+        workflow:
+          'Escolha uma sala, selecione um intervalo livre e informe convidados por e-mail. Confirme ou cancele a reserva, acompanhe as notificações SMTP e retome falhas sem perder a reserva.',
         focus:
           'Transações DynamoDB impedem conflitos, idempotência protege repetições e a outbox permite retomar entregas. A autenticação vem do IAM Portfolio.',
         imageAlt:
@@ -325,6 +379,10 @@ const portuguese: PortfolioCopy = {
         category: 'Arquivos que viram dados úteis',
         description:
           'Importação CSV planejada com validação por linha, processamento em segundo plano e relatórios de erro acionáveis.',
+        problem:
+          'Arquivos CSV grandes podem conter linhas inválidas, e uma importação demorada não deve bloquear quem envia o arquivo.',
+        workflow:
+          'O fluxo previsto recebe o arquivo, valida linhas e processa lotes em segundo plano. Um relatório mostra o que foi importado e quais linhas precisam de correção.',
         focus:
           'Processamento idempotente, novas tentativas e histórico rastreável de importação. A autenticação usará o IAM Portfolio.',
         imageAlt: '',
@@ -339,6 +397,10 @@ const portuguese: PortfolioCopy = {
         category: 'Pela interface ou por um agente',
         description:
           'CRM planejado para clientes, oportunidades e tarefas de acompanhamento, com ferramentas MCP para um agente de IA.',
+        problem:
+          'Dados de clientes e tarefas de acompanhamento precisam seguir as mesmas regras pela interface e por um agente de IA.',
+        workflow:
+          'O CRM previsto organiza clientes, oportunidades e tarefas. Entradas HTTP e MCP usam as mesmas regras e permissões, com confirmação para escritas e histórico de autoria.',
         focus:
           'As mesmas regras e permissões nas entradas HTTP e MCP, com confirmação de escritas e histórico de autoria. A identidade virá do IAM Portfolio.',
         imageAlt: '',
@@ -353,6 +415,10 @@ const portuguese: PortfolioCopy = {
         category: 'Entregas que você consegue acompanhar',
         description:
           'Plataforma planejada para eventos assinados, histórico de tentativas e recuperação quando um destino falha.',
+        problem:
+          'Integrações falham quando o destino fica indisponível ou recebe o mesmo evento mais de uma vez.',
+        workflow:
+          'A plataforma prevista assina eventos, registra tentativas e agenda reenvios limitados. Um replay autorizado permite recuperar entregas com histórico visível.',
         focus:
           'Assinatura HMAC, tentativas limitadas, tratamento de duplicatas e reenvio autorizado. A autenticação usará o IAM Portfolio.',
         imageAlt: '',
@@ -407,6 +473,11 @@ const spanish: PortfolioCopy = {
     label: 'Navegación principal',
   },
   hero: {
+    availability: 'Disponible para oportunidades',
+    cta: 'Trabajemos juntos',
+    experience: 'años desarrollando software',
+    value: 'Convirtiendo desafíos de clientes en software útil.',
+
     role: 'Enfoque backend. Visión full stack.',
     firstLine: 'Ingeniería.',
     secondLine: 'Con personalidad.',
@@ -460,6 +531,13 @@ const spanish: PortfolioCopy = {
     ],
   },
   projects: {
+    explore: 'Explorar proyecto',
+    selected: 'Proyecto seleccionado',
+    close: 'Volver a proyectos',
+    problemLabel: 'El problema',
+    workflowLabel: 'Cómo funciona',
+    plannedNote: 'Flujo propuesto. Este proyecto sigue planificado.',
+
     title: 'Cinco proyectos.',
     titleAccent: 'Un portfolio conectado.',
     description:
@@ -485,6 +563,10 @@ const spanish: PortfolioCopy = {
         category: 'La base de identidad del portfolio',
         description:
           'Una cuenta central para los proyectos. Acceso con Google, sesión SSO y permisos administrados de forma independiente en cada aplicación.',
+        problem:
+          'Los accesos repetidos y los permisos repartidos entre aplicaciones dificultan la gestión de identidad.',
+        workflow:
+          'Una cuenta accede a varios proyectos con SSO. Los administradores gestionan cada aplicación de forma independiente; PKCE y la validación de audiencia protegen la sesión.',
         focus:
           'OIDC / OAuth 2.0 con PKCE, refresh tokens rotativos, aislamiento de audiencia e identidades transaccionales en DynamoDB.',
         imageAlt:
@@ -495,11 +577,15 @@ const spanish: PortfolioCopy = {
         status: 'implemented',
         image: '/images/room-reservations.png',
         demoUrl: 'http://localhost:5175',
-        stack: ['Vue', 'NestJS', 'DynamoDB', 'Google Calendar'],
+        stack: ['Vue', 'NestJS', 'DynamoDB', 'SMTP'],
         name: 'Reservas de salas',
         category: 'De la disponibilidad a la reunión',
         description:
-          'Elige sala y horario, invita a tu equipo y sigue la reserva. Google Calendar y notificaciones SMTP completan el flujo.',
+          'Elige sala y horario, invita a tu equipo y sigue la reserva. Notificaciones SMTP completan el flujo.',
+        problem:
+          'Los equipos necesitan encontrar salas libres y reservar horarios sin duplicados, incluso con solicitudes simultáneas.',
+        workflow:
+          'Elige una sala, selecciona un intervalo libre e invita participantes por correo. Confirma o cancela la reserva, consulta las notificaciones SMTP y reintenta fallos sin perder la reserva.',
         focus:
           'Transacciones DynamoDB evitan conflictos, la idempotencia protege repeticiones y el outbox permite retomar entregas. La autenticación viene de IAM Portfolio.',
         imageAlt:
@@ -515,6 +601,10 @@ const spanish: PortfolioCopy = {
         category: 'Archivos que se convierten en datos útiles',
         description:
           'Importación CSV planificada con validación por fila, procesamiento en segundo plano e informes de errores claros.',
+        problem:
+          'Los CSV grandes pueden contener filas inválidas, y una importación lenta no debe bloquear a quien envía el archivo.',
+        workflow:
+          'El flujo previsto recibe el archivo, valida filas y procesa lotes en segundo plano. Un informe muestra lo importado y las filas que necesitan corrección.',
         focus:
           'Procesamiento idempotente, reintentos e historial de importación trazable. La autenticación usará IAM Portfolio.',
         imageAlt: '',
@@ -529,6 +619,10 @@ const spanish: PortfolioCopy = {
         category: 'Por la interfaz o mediante un agente',
         description:
           'CRM planificado para clientes, oportunidades y tareas de seguimiento, con herramientas MCP para un agente de IA.',
+        problem:
+          'Los datos de clientes y los seguimientos necesitan las mismas reglas desde la interfaz y desde un agente de IA.',
+        workflow:
+          'El CRM previsto organiza clientes, oportunidades y tareas. HTTP y MCP utilizan las mismas reglas y permisos, con confirmación de escrituras y registro de autoría.',
         focus:
           'Las mismas reglas y permisos por HTTP y MCP, con confirmación de escrituras e historial de autoría. La identidad vendrá de IAM Portfolio.',
         imageAlt: '',
@@ -543,6 +637,10 @@ const spanish: PortfolioCopy = {
         category: 'Entregas que puedes seguir',
         description:
           'Plataforma planificada para eventos firmados, historial de intentos y recuperación cuando un destino falla.',
+        problem:
+          'Las integraciones fallan cuando un destino no está disponible o recibe un evento más de una vez.',
+        workflow:
+          'La plataforma prevista firma eventos, registra intentos y programa reintentos limitados. La reproducción autorizada permite recuperar entregas con un historial visible.',
         focus:
           'Firmas HMAC, reintentos limitados, manejo de duplicados y reenvío autorizado. La autenticación usará IAM Portfolio.',
         imageAlt: '',

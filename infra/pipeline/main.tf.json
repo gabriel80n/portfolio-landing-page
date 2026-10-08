@@ -1,0 +1,351 @@
+{
+  "terraform": {
+    "required_version": "= 1.16.5",
+    "required_providers": {
+      "aws": {
+        "source": "hashicorp/aws",
+        "version": "~> 6.64.0"
+      }
+    },
+    "backend": {
+      "s3": {}
+    }
+  },
+  "provider": {
+    "aws": {
+      "region": "us-east-2"
+    }
+  },
+  "data": {
+    "aws_caller_identity": {
+      "current": {}
+    }
+  },
+  "variable": {
+    "state_bucket": {
+      "type": "string"
+    },
+    "site_bucket": {
+      "type": "string"
+    },
+    "certificate_arn": {
+      "type": "string"
+    },
+    "distribution_arn": {
+      "type": "string"
+    },
+    "function_arn": {
+      "type": "string"
+    },
+    "connection_arn": {
+      "type": "string"
+    },
+    "artifact_bucket": {
+      "type": "string"
+    },
+    "formspree_endpoint": {
+      "type": "string"
+    }
+  },
+  "resource": {
+    "aws_s3_bucket": {
+      "artifacts": {
+        "bucket": "${var.artifact_bucket}",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "tags": {
+          "Project": "portfolio-landing-page",
+          "Purpose": "pipeline-artifacts"
+        }
+      }
+    },
+    "aws_s3_bucket_public_access_block": {
+      "artifacts": {
+        "bucket": "${aws_s3_bucket.artifacts.id}",
+        "block_public_acls": true,
+        "block_public_policy": true,
+        "ignore_public_acls": true,
+        "restrict_public_buckets": true
+      }
+    },
+    "aws_s3_bucket_server_side_encryption_configuration": {
+      "artifacts": {
+        "bucket": "${aws_s3_bucket.artifacts.id}",
+        "rule": {
+          "apply_server_side_encryption_by_default": {
+            "sse_algorithm": "AES256"
+          }
+        }
+      }
+    },
+    "aws_s3_bucket_versioning": {
+      "artifacts": {
+        "bucket": "${aws_s3_bucket.artifacts.id}",
+        "versioning_configuration": {
+          "status": "Enabled"
+        }
+      }
+    },
+    "aws_s3_bucket_policy": {
+      "artifacts": {
+        "bucket": "${aws_s3_bucket.artifacts.id}",
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":\"s3:*\",\"Resource\":[\"${aws_s3_bucket.artifacts.arn}\",\"${aws_s3_bucket.artifacts.arn}/*\"],\"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}]}"
+      }
+    },
+    "aws_kms_key": {
+      "logs": {
+        "description": "Portfolio CodeBuild log encryption",
+        "enable_key_rotation": true,
+        "deletion_window_in_days": 30,
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::${data.aws_caller_identity.current.account_id}:root\"},\"Action\":\"kms:*\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"logs.us-east-2.amazonaws.com\"},\"Action\":[\"kms:Encrypt\",\"kms:Decrypt\",\"kms:ReEncrypt*\",\"kms:GenerateDataKey*\",\"kms:DescribeKey\"],\"Resource\":\"*\",\"Condition\":{\"ArnEquals\":{\"kms:EncryptionContext:aws:logs:arn\":\"arn:aws:logs:us-east-2:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/portfolio-landing-page\"}}}]}"
+      }
+    },
+    "aws_cloudwatch_log_group": {
+      "build": {
+        "name": "/aws/codebuild/portfolio-landing-page",
+        "retention_in_days": 14,
+        "kms_key_id": "${aws_kms_key.logs.arn}"
+      }
+    },
+    "aws_iam_role": {
+      "plan": {
+        "name": "portfolio-landing-page-plan",
+        "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"codebuild.amazonaws.com\"},\"Action\":\"sts:AssumeRole\",\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"${data.aws_caller_identity.current.account_id}\"},\"ArnLike\":{\"aws:SourceArn\":\"arn:aws:codebuild:us-east-2:${data.aws_caller_identity.current.account_id}:project/portfolio-landing-page-plan\"}}}]}"
+      },
+      "deploy": {
+        "name": "portfolio-landing-page-deploy",
+        "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"codebuild.amazonaws.com\"},\"Action\":\"sts:AssumeRole\",\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"${data.aws_caller_identity.current.account_id}\"},\"ArnLike\":{\"aws:SourceArn\":\"arn:aws:codebuild:us-east-2:${data.aws_caller_identity.current.account_id}:project/portfolio-landing-page-deploy\"}}}]}"
+      },
+      "pipeline": {
+        "name": "portfolio-landing-page-pipeline",
+        "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"codepipeline.amazonaws.com\"},\"Action\":\"sts:AssumeRole\",\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"${data.aws_caller_identity.current.account_id}\"},\"ArnLike\":{\"aws:SourceArn\":\"arn:aws:codepipeline:us-east-2:${data.aws_caller_identity.current.account_id}:portfolio-landing-page\"}}}]}"
+      }
+    },
+    "aws_iam_role_policy": {
+      "plan": {
+        "role": "${aws_iam_role.plan.id}",
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:ListBucket\",\"s3:GetBucketLocation\",\"s3:GetBucketPolicy\",\"s3:GetBucketVersioning\",\"s3:GetEncryptionConfiguration\",\"s3:GetBucketPublicAccessBlock\",\"s3:GetBucketTagging\",\"s3:GetBucketAcl\",\"s3:GetBucketCORS\",\"s3:GetBucketWebsite\",\"s3:GetBucketLogging\",\"s3:GetBucketObjectLockConfiguration\",\"s3:GetAccelerateConfiguration\",\"s3:GetLifecycleConfiguration\",\"s3:GetReplicationConfiguration\",\"s3:GetBucketRequestPayment\"],\"Resource\":[\"arn:aws:s3:::${var.site_bucket}\",\"arn:aws:s3:::${var.state_bucket}\"]},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:GetObjectVersion\",\"s3:GetObjectTagging\"],\"Resource\":[\"arn:aws:s3:::${var.state_bucket}/production/site.tfstate\",\"arn:aws:s3:::${var.state_bucket}/production/site.tfstate.tflock\",\"arn:aws:s3:::${var.state_bucket}/production/releases/*\",\"arn:aws:s3:::${var.site_bucket}/releases/*\"]},{\"Effect\":\"Allow\",\"Action\":[\"cloudfront:GetDistribution\",\"cloudfront:GetDistributionConfig\",\"cloudfront:ListTagsForResource\"],\"Resource\":\"${var.distribution_arn}\"},{\"Effect\":\"Allow\",\"Action\":[\"cloudfront:GetOriginAccessControl\",\"cloudfront:DescribeFunction\",\"cloudfront:GetFunction\",\"cloudfront:GetResponseHeadersPolicy\",\"cloudfront:ListTagsForResource\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:GetObjectVersion\",\"s3:PutObject\"],\"Resource\":\"${aws_s3_bucket.artifacts.arn}/*\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetBucketLocation\",\"s3:ListBucket\",\"s3:GetBucketVersioning\"],\"Resource\":\"${aws_s3_bucket.artifacts.arn}\"},{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"${aws_cloudwatch_log_group.build.arn}:*\"}]}"
+      },
+      "deploy": {
+        "role": "${aws_iam_role.deploy.id}",
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:ListBucket\",\"s3:GetBucketLocation\",\"s3:GetBucketPolicy\",\"s3:GetBucketVersioning\",\"s3:GetEncryptionConfiguration\",\"s3:GetBucketPublicAccessBlock\",\"s3:GetBucketTagging\",\"s3:GetBucketAcl\",\"s3:GetBucketCORS\",\"s3:GetBucketWebsite\",\"s3:GetBucketLogging\",\"s3:GetBucketObjectLockConfiguration\",\"s3:GetAccelerateConfiguration\",\"s3:GetLifecycleConfiguration\",\"s3:GetReplicationConfiguration\",\"s3:GetBucketRequestPayment\"],\"Resource\":[\"arn:aws:s3:::${var.site_bucket}\",\"arn:aws:s3:::${var.state_bucket}\"]},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:GetObjectVersion\",\"s3:GetObjectTagging\"],\"Resource\":[\"arn:aws:s3:::${var.state_bucket}/production/site.tfstate\",\"arn:aws:s3:::${var.state_bucket}/production/site.tfstate.tflock\",\"arn:aws:s3:::${var.state_bucket}/production/releases/*\",\"arn:aws:s3:::${var.site_bucket}/releases/*\"]},{\"Effect\":\"Allow\",\"Action\":[\"cloudfront:GetDistribution\",\"cloudfront:GetDistributionConfig\",\"cloudfront:ListTagsForResource\"],\"Resource\":\"${var.distribution_arn}\"},{\"Effect\":\"Allow\",\"Action\":[\"cloudfront:GetOriginAccessControl\",\"cloudfront:DescribeFunction\",\"cloudfront:GetFunction\",\"cloudfront:GetResponseHeadersPolicy\",\"cloudfront:ListTagsForResource\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:PutObject\"],\"Resource\":[\"arn:aws:s3:::${var.state_bucket}/production/site.tfstate\",\"arn:aws:s3:::${var.state_bucket}/production/releases/*\"]},{\"Effect\":\"Allow\",\"Action\":[\"s3:PutObject\",\"s3:DeleteObject\"],\"Resource\":[\"arn:aws:s3:::${var.state_bucket}/production/site.tfstate.tflock\",\"arn:aws:s3:::${var.state_bucket}/production/releases/*.tflock\"]},{\"Effect\":\"Allow\",\"Action\":[\"s3:PutObject\",\"s3:PutObjectTagging\"],\"Resource\":\"arn:aws:s3:::${var.site_bucket}/releases/*\"},{\"Effect\":\"Allow\",\"Action\":[\"cloudfront:UpdateDistribution\"],\"Resource\":\"${var.distribution_arn}\"},{\"Effect\":\"Allow\",\"Action\":[\"cloudfront:UpdateFunction\",\"cloudfront:PublishFunction\"],\"Resource\":\"${var.function_arn}\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:GetObjectVersion\",\"s3:PutObject\"],\"Resource\":\"${aws_s3_bucket.artifacts.arn}/*\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetBucketLocation\",\"s3:ListBucket\",\"s3:GetBucketVersioning\"],\"Resource\":\"${aws_s3_bucket.artifacts.arn}\"},{\"Effect\":\"Allow\",\"Action\":[\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"${aws_cloudwatch_log_group.build.arn}:*\"}]}"
+      },
+      "pipeline": {
+        "role": "${aws_iam_role.pipeline.id}",
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:GetObjectVersion\",\"s3:PutObject\"],\"Resource\":\"${aws_s3_bucket.artifacts.arn}/*\"},{\"Effect\":\"Allow\",\"Action\":[\"s3:GetBucketLocation\",\"s3:ListBucket\",\"s3:GetBucketVersioning\"],\"Resource\":\"${aws_s3_bucket.artifacts.arn}\"},{\"Effect\":\"Allow\",\"Action\":[\"codebuild:StartBuild\",\"codebuild:BatchGetBuilds\"],\"Resource\":[\"${aws_codebuild_project.plan.arn}\",\"${aws_codebuild_project.deploy.arn}\"]},{\"Effect\":\"Allow\",\"Action\":[\"codeconnections:UseConnection\"],\"Resource\":\"${var.connection_arn}\",\"Condition\":{\"StringEquals\":{\"codeconnections:FullRepositoryId\":\"gabriel80n/portfolio-landing-page\"},\"StringEqualsIfExists\":{\"codeconnections:ProviderAction\":[\"GetBranch\",\"GetCommit\",\"GetRepository\",\"GetUploadArchiveToS3Status\",\"StartUploadArchiveToS3\",\"GitPull\",\"ListBranches\",\"ListCommitFiles\",\"GetFile\",\"GetFolder\",\"GenerateReferenceLink\",\"IsRepositoryEmpty\"],\"codeconnections:BranchName\":\"main\"}}},{\"Effect\":\"Allow\",\"Action\":[\"codestar-connections:UseConnection\"],\"Resource\":\"${var.connection_arn}\",\"Condition\":{\"StringEquals\":{\"codestar-connections:FullRepositoryId\":\"gabriel80n/portfolio-landing-page\"},\"StringEqualsIfExists\":{\"codestar-connections:ProviderAction\":[\"GetBranch\",\"GetCommit\",\"GetRepository\",\"GetUploadArchiveToS3Status\",\"StartUploadArchiveToS3\",\"GitPull\",\"ListBranches\",\"ListCommitFiles\",\"GetFile\",\"GetFolder\",\"GenerateReferenceLink\",\"IsRepositoryEmpty\"],\"codestar-connections:BranchName\":\"main\"}}}]}"
+      }
+    },
+    "aws_codebuild_project": {
+      "plan": {
+        "name": "portfolio-landing-page-plan",
+        "service_role": "${aws_iam_role.plan.arn}",
+        "build_timeout": 20,
+        "queued_timeout": 30,
+        "concurrent_build_limit": 1,
+        "source": {
+          "type": "CODEPIPELINE",
+          "buildspec": "infra/pipeline/plan-buildspec.yml"
+        },
+        "artifacts": {
+          "type": "CODEPIPELINE"
+        },
+        "environment": {
+          "compute_type": "BUILD_GENERAL1_SMALL",
+          "image": "aws/codebuild/standard:7.0",
+          "type": "LINUX_CONTAINER",
+          "privileged_mode": false,
+          "environment_variable": [
+            {
+              "name": "STATE_BUCKET",
+              "type": "PLAINTEXT",
+              "value": "${var.state_bucket}"
+            },
+            {
+              "name": "TF_VAR_bucket_name",
+              "type": "PLAINTEXT",
+              "value": "${var.site_bucket}"
+            },
+            {
+              "name": "TF_VAR_certificate_arn",
+              "type": "PLAINTEXT",
+              "value": "${var.certificate_arn}"
+            },
+            {
+              "name": "VITE_CONTACT_FORM_ENDPOINT",
+              "type": "PLAINTEXT",
+              "value": "${var.formspree_endpoint}"
+            }
+          ]
+        },
+        "logs_config": {
+          "cloudwatch_logs": {
+            "status": "ENABLED",
+            "group_name": "${aws_cloudwatch_log_group.build.name}",
+            "stream_name": "plan"
+          }
+        },
+        "tags": {
+          "Project": "portfolio-landing-page",
+          "Environment": "production"
+        }
+      },
+      "deploy": {
+        "name": "portfolio-landing-page-deploy",
+        "service_role": "${aws_iam_role.deploy.arn}",
+        "build_timeout": 20,
+        "queued_timeout": 30,
+        "concurrent_build_limit": 1,
+        "source": {
+          "type": "CODEPIPELINE",
+          "buildspec": "infra/pipeline/deploy-buildspec.yml"
+        },
+        "artifacts": {
+          "type": "CODEPIPELINE"
+        },
+        "environment": {
+          "compute_type": "BUILD_GENERAL1_SMALL",
+          "image": "aws/codebuild/standard:7.0",
+          "type": "LINUX_CONTAINER",
+          "privileged_mode": false,
+          "environment_variable": [
+            {
+              "name": "STATE_BUCKET",
+              "type": "PLAINTEXT",
+              "value": "${var.state_bucket}"
+            },
+            {
+              "name": "TF_VAR_bucket_name",
+              "type": "PLAINTEXT",
+              "value": "${var.site_bucket}"
+            },
+            {
+              "name": "TF_VAR_certificate_arn",
+              "type": "PLAINTEXT",
+              "value": "${var.certificate_arn}"
+            },
+            {
+              "name": "VITE_CONTACT_FORM_ENDPOINT",
+              "type": "PLAINTEXT",
+              "value": "${var.formspree_endpoint}"
+            }
+          ]
+        },
+        "logs_config": {
+          "cloudwatch_logs": {
+            "status": "ENABLED",
+            "group_name": "${aws_cloudwatch_log_group.build.name}",
+            "stream_name": "deploy"
+          }
+        },
+        "tags": {
+          "Project": "portfolio-landing-page",
+          "Environment": "production"
+        }
+      }
+    },
+    "aws_codepipeline": {
+      "site": {
+        "name": "portfolio-landing-page",
+        "pipeline_type": "V2",
+        "execution_mode": "QUEUED",
+        "role_arn": "${aws_iam_role.pipeline.arn}",
+        "artifact_store": {
+          "location": "${aws_s3_bucket.artifacts.id}",
+          "type": "S3"
+        },
+        "stage": [
+          {
+            "name": "Source",
+            "action": [
+              {
+                "name": "GitHubMain",
+                "category": "Source",
+                "owner": "AWS",
+                "provider": "CodeStarSourceConnection",
+                "version": "1",
+                "namespace": "SourceVars",
+                "output_artifacts": [
+                  "SourceOutput"
+                ],
+                "configuration": {
+                  "ConnectionArn": "${var.connection_arn}",
+                  "FullRepositoryId": "gabriel80n/portfolio-landing-page",
+                  "BranchName": "main",
+                  "OutputArtifactFormat": "CODE_ZIP",
+                  "DetectChanges": "true"
+                }
+              }
+            ]
+          },
+          {
+            "name": "ValidateAndPlan",
+            "action": [
+              {
+                "name": "BuildAndPlan",
+                "category": "Build",
+                "owner": "AWS",
+                "provider": "CodeBuild",
+                "version": "1",
+                "input_artifacts": [
+                  "SourceOutput"
+                ],
+                "output_artifacts": [
+                  "BuildOutput"
+                ],
+                "configuration": {
+                  "ProjectName": "${aws_codebuild_project.plan.name}",
+                  "EnvironmentVariables": "[{\"name\":\"COMMIT_SHA\",\"value\":\"#{SourceVars.CommitId}\",\"type\":\"PLAINTEXT\"}]"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Approve",
+            "action": [
+              {
+                "name": "ApproveExactPlan",
+                "category": "Approval",
+                "owner": "AWS",
+                "provider": "Manual",
+                "version": "1",
+                "configuration": {
+                  "CustomData": "Review release and site plans for #{SourceVars.CommitId} in private BuildOutput before approval."
+                }
+              }
+            ]
+          },
+          {
+            "name": "Deploy",
+            "action": [
+              {
+                "name": "ApplySavedPlans",
+                "category": "Build",
+                "owner": "AWS",
+                "provider": "CodeBuild",
+                "version": "1",
+                "input_artifacts": [
+                  "BuildOutput"
+                ],
+                "configuration": {
+                  "ProjectName": "${aws_codebuild_project.deploy.name}",
+                  "EnvironmentVariables": "[{\"name\":\"COMMIT_SHA\",\"value\":\"#{SourceVars.CommitId}\",\"type\":\"PLAINTEXT\"}]"
+                }
+              }
+            ]
+          }
+        ],
+        "depends_on": [
+          "aws_iam_role_policy.pipeline",
+          "aws_iam_role_policy.plan",
+          "aws_iam_role_policy.deploy"
+        ]
+      }
+    }
+  },
+  "output": {
+    "pipeline_name": {
+      "value": "${aws_codepipeline.site.name}"
+    }
+  }
+}

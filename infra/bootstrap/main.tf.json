@@ -1,0 +1,113 @@
+{
+  "terraform": {
+    "required_version": "= 1.16.5",
+    "required_providers": {
+      "aws": {
+        "source": "hashicorp/aws",
+        "version": "~> 6.64.0"
+      }
+    },
+    "backend": {
+      "s3": {}
+    }
+  },
+  "provider": {
+    "aws": [
+      {
+        "region": "us-east-2"
+      },
+      {
+        "alias": "edge",
+        "region": "us-east-1"
+      }
+    ]
+  },
+  "variable": {
+    "state_bucket": {
+      "type": "string"
+    }
+  },
+  "resource": {
+    "aws_s3_bucket": {
+      "state": {
+        "bucket": "${var.state_bucket}",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "tags": {
+          "Project": "portfolio-landing-page",
+          "Purpose": "terraform-state"
+        }
+      }
+    },
+    "aws_s3_bucket_public_access_block": {
+      "state": {
+        "bucket": "${aws_s3_bucket.state.id}",
+        "block_public_acls": true,
+        "block_public_policy": true,
+        "ignore_public_acls": true,
+        "restrict_public_buckets": true
+      }
+    },
+    "aws_s3_bucket_server_side_encryption_configuration": {
+      "state": {
+        "bucket": "${aws_s3_bucket.state.id}",
+        "rule": {
+          "apply_server_side_encryption_by_default": {
+            "sse_algorithm": "AES256"
+          }
+        }
+      }
+    },
+    "aws_s3_bucket_versioning": {
+      "state": {
+        "bucket": "${aws_s3_bucket.state.id}",
+        "versioning_configuration": {
+          "status": "Enabled"
+        }
+      }
+    },
+    "aws_s3_bucket_policy": {
+      "state": {
+        "bucket": "${aws_s3_bucket.state.id}",
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Deny\",\"Principal\":\"*\",\"Action\":\"s3:*\",\"Resource\":[\"arn:aws:s3:::${var.state_bucket}\",\"arn:aws:s3:::${var.state_bucket}/*\"],\"Condition\":{\"Bool\":{\"aws:SecureTransport\":\"false\"}}}]}"
+      }
+    },
+    "aws_acm_certificate": {
+      "site": {
+        "provider": "aws.edge",
+        "domain_name": "gabrielnicholas.site",
+        "subject_alternative_names": [
+          "www.gabrielnicholas.site"
+        ],
+        "validation_method": "DNS",
+        "lifecycle": {
+          "prevent_destroy": true
+        },
+        "tags": {
+          "Project": "portfolio-landing-page"
+        }
+      }
+    },
+    "aws_codestarconnections_connection": {
+      "github": {
+        "name": "portfolio-github",
+        "provider_type": "GitHub"
+      }
+    }
+  },
+  "output": {
+    "certificate_arn": {
+      "value": "${aws_acm_certificate.site.arn}"
+    },
+    "dns_validation_records": {
+      "value": "${aws_acm_certificate.site.domain_validation_options}"
+    },
+    "state_bucket": {
+      "value": "${aws_s3_bucket.state.id}"
+    },
+    "connection_arn": {
+      "value": "${aws_codestarconnections_connection.github.arn}"
+    }
+  }
+}

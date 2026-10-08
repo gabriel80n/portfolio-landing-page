@@ -38,7 +38,7 @@ h1.hero-enter {
 }
 @keyframes hero-enter {
   from {
-    opacity: 0;
+    opacity: 1;
     transform: translateY(28px);
   }
   to {
@@ -88,6 +88,7 @@ h1.hero-enter {
   *,
   *::before,
   *::after {
+    animation-delay: 0s !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
