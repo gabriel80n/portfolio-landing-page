@@ -273,7 +273,7 @@
                   "FullRepositoryId": "gabriel80n/portfolio-landing-page",
                   "BranchName": "main",
                   "OutputArtifactFormat": "CODE_ZIP",
-                  "DetectChanges": "true"
+                  "DetectChanges": "false"
                 }
               }
             ]
@@ -339,7 +339,20 @@
           "aws_iam_role_policy.pipeline",
           "aws_iam_role_policy.plan",
           "aws_iam_role_policy.deploy"
-        ]
+        ],
+        "trigger": {
+          "provider_type": "CodeStarSourceConnection",
+          "git_configuration": {
+            "source_action_name": "GitHubMain",
+            "push": {
+              "branches": {
+                "includes": [
+                  "main"
+                ]
+              }
+            }
+          }
+        }
       }
     }
   },
