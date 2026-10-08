@@ -1,0 +1,35 @@
+@media print {
+  :root {
+    color: #171a18;
+    background: white;
+    --background: white;
+    --text: #171a18;
+    --muted: #414941;
+    --accent: #74401f;
+    --line: #777;
+    color-scheme: light;
+  }
+  .site-header,
+  .hero-actions,
+  .contact-form-wrapper,
+  .site-footer,
+  .project-artwork {
+    display: none;
+  }
+  .section-shell {
+    width: 100%;
+  }
+  .section-space {
+    padding-block: 30px;
+  }
+  .hero {
+    min-height: auto;
+  }
+  .portrait-composition {
+    display: none;
+  }
+  .will-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

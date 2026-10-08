@@ -1,0 +1,99 @@
+.hero-enter {
+  animation: hero-enter 0.9s var(--ease) backwards;
+}
+h1.hero-enter {
+  animation-delay: 0.1s;
+}
+.hero-description.hero-enter {
+  animation-delay: 0.2s;
+}
+.hero-actions.hero-enter {
+  animation-delay: 0.3s;
+}
+.copy-enter-active,
+.copy-leave-active {
+  transition:
+    opacity 0.16s,
+    transform 0.16s;
+}
+.copy-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.copy-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.will-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.75s var(--ease),
+    transform 0.75s var(--ease);
+}
+.will-reveal.is-visible,
+.will-reveal:focus-within {
+  opacity: 1;
+  transform: none;
+}
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes portrait-enter {
+  from {
+    opacity: 0;
+    transform: translateY(40px) rotate(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(5deg);
+  }
+}
+@keyframes portrait-disc {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes detail-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes loading {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .will-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

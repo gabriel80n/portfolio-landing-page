@@ -40,3 +40,13 @@ __screenshots__/
 
 test-results/
 playwright-report/
+.playwright-cli/
+
+# Local environment configuration
+.env
+.env.*
+
+# Versionar somente o template público, nunca credenciais locais.
+.env
+.env.*
+!.env.example
