@@ -89,12 +89,12 @@ Terraform 1.16.5 e provider AWS 6.64.0 estão fixados. Buckets, pipeline, builds
 
 | Configuração | Responsabilidade | State |
 | --- | --- | --- |
-| `infra/bootstrap` | Bucket privado de state, certificado não exportável e conexão GitHub | Inicialmente local; migrar após criação para `bootstrap/terraform.tfstate` |
+| `infra/bootstrap` | Bucket privado de state, certificado não exportável e conexão GitHub | `bootstrap/terraform.tfstate` |
 | `infra/site` | Bucket privado com OAC, CloudFront, headers e roteamento | `production/site.tfstate` |
 | `infra/release` | Artefatos em `releases/<commit-sha>/` | `production/releases/<sha>.tfstate` |
 | `infra/pipeline` | Artefatos privados, roles, builds, logs criptografados e pipeline | `production/pipeline.tfstate` |
 
-O bootstrap usa state local ignorado apenas até criar o backend; migrar com aprovação e cópia de recuperação antes de concluir a entrega. Backend S3 com criptografia, versionamento e `use_lockfile=true`. Não versionar planos, state, tfvars ou `.terraform/`.
+O bootstrap criou o backend e seu state foi migrado com aprovação e cópia local de recuperação. Backend S3 criptografado, versionado e com use_lockfile=true. Não versionar planos, state, tfvars ou .terraform/.
 
 Releases têm state separado e permanecem disponíveis para rollback. `infra/prepare-release.js` inclui o SHA nos links de JS/CSS do HTML. A CloudFront Function inclui a release na chave de cache, preserva links de releases anteriores e não transforma assets ausentes em HTML. HTML e arquivos públicos têm cache curto; assets com hash têm cache longo. Sem invalidação recorrente. Não excluir releases ou versões de state sem política de retenção aprovada.
 
@@ -102,7 +102,7 @@ Releases têm state separado e permanecem disponíveis para rollback. `infra/pre
 
 CodePipeline V2 em modo QUEUED:
 
-1. CodeConnections obtém `main` do GitHub.
+1. Trigger V2 explícito de push em main usa CodeConnections para obter a origem GitHub. A detecção padrão do source fica desabilitada; o trigger declarado controla os eventos.
 2. CodeBuild executa lint, testes unitários, build, E2E Chromium, validação e planos Terraform de release/site.
 3. Aprovação manual obrigatória, com referência ao commit e aos planos privados.
 4. Outro CodeBuild aplica exatamente os dois planos salvos: publica a release primeiro e depois promove o CloudFront; verifica página pública e asset ausente.
@@ -131,11 +131,11 @@ Credenciais locais vêm do perfil AWS `portfolio`; CodeBuild/CodePipeline usam r
 
 ### Ativação e DNS
 
-- Primeiro plano salvo: 7 criações (bucket state e proteções, certificado, conexão), sem alterações ou exclusões. Ainda não aplicado.
-- Autorizar conexão PENDING no console AWS Developer Tools > Connections, selecionando somente este repositório no GitHub App. Essa autorização não pode ser concluída por API.
-- Adicionar na Namecheap os CNAMEs de validação emitidos pelo ACM. Preservar MX/TXT.
-- Após emissão do certificado, aplicar os planos aprovados de site, release e pipeline; migrar o state de bootstrap para o backend remoto.
-- Após CloudFront e conteúdo verificados, configurar ALIAS `@` e CNAME `www` para o hostname real da distribuição. Ainda não há hostname emitido.
+- Bootstrap aplicado: 7 recursos criados, sem alterações ou exclusões; state remoto criptografado e versionado verificado.
+- Conexão GitHub autorizada e verificada como AVAILABLE. A autorização inicial exige OAuth no console e inclusão do repositório no GitHub App.
+- CNAMEs ACM configurados na Namecheap; certificado ISSUED. Preservar esses registros para renovação e preservar MX/TXT.
+- Planos de site, release e pipeline aplicados com autorização. State de bootstrap migrado para o backend remoto.
+- Namecheap: ALIAS @ e CNAME www apontam para d2vitzk931hule.cloudfront.net. Certificado, origem privada e HTTPS verificados.
 - Se Formspree usa restrição de domínio, permitir `gabrielnicholas.site` e `www.gabrielnicholas.site`; verificar recebimento com envio controlado.
 
 Rollback promove um SHA já publicado, via novo plano aprovado de site, sem excluir dados. Infraestrutura e artefatos anteriores permanecem. Remoção de recursos exige autorização específica.
@@ -144,13 +144,13 @@ Rollback promove um SHA já publicado, via novo plano aprovado de site, sem excl
 
 Em 8 de outubro de 2026: sessão AWS renovada, projeto `052229332886`, região `us-east-2`, plano Free ACTIVE e US$100 de créditos consultados. Não houve mudança para plano pago ou ativação de recursos avançados. OIDC GitHub é bloqueado pela SCP gerenciada; não contornar com access keys.
 
-Preparação local validada: Terraform bootstrap/site/release/pipeline, formatação, lint, build, 5 unitários e 5 E2E Chromium. O pipeline AWS e o domínio ainda não foram ativados/testados. Valores e ARNs restantes serão obtidos após provisionamento aprovado; não usar identificadores fictícios para ativar o pipeline.
+Terraform validado e infraestrutura criada. Primeira execução completa na AWS: lint, build, 5 unitários, 5 E2E, planos salvos e publicação verificada. CloudFront respondeu 200, imagens e seleção de projetos funcionaram sem erros no navegador; asset inexistente retornou 403. Domínio e www apontam para a distribuição. Gatilho automático de push em main em verificação; não confundir a execução inicial CreatePipeline com a comprovação do webhook.
 
 Estimativa de planejamento para baixo tráfego e cerca de 20 deploys/mês: aproximadamente US$2-5/mês antes de créditos/impostos, dependendo de duração dos builds, tráfego e armazenamento. Não é limite de cobrança. Uma chave KMS para logs custa inicialmente US$1/mês, com custo adicional em futuras rotações; CodeBuild/CodePipeline têm cobrança por uso e franquias. Certificado ACM público não exportável não tem custo de emissão. O primeiro bootstrap isolado tem apenas custos mínimos por armazenamento/operações S3; a estimativa total inclui etapas posteriores.
 
 Referências de preço: [CodeBuild](https://aws.amazon.com/codebuild/pricing/), [CodePipeline](https://aws.amazon.com/codepipeline/pricing/), [KMS](https://aws.amazon.com/kms/pricing/), [S3](https://aws.amazon.com/s3/pricing/), [CloudFront](https://aws.amazon.com/cloudfront/pricing/pay-as-you-go/) e [ACM](https://aws.amazon.com/certificate-manager/pricing/).
 
-### Recursos de produ??o e opera??o
+### Recursos de produção e operação
 
 | Recurso | Identificador |
 | --- | --- |
@@ -161,8 +161,8 @@ Referências de preço: [CodeBuild](https://aws.amazon.com/codebuild/pricing/), 
 | Bucket state | `portfolio-landing-page-state-052229332886` |
 | Bucket artefatos | `portfolio-landing-page-artifacts-052229332886` |
 | Certificado ACM (us-east-1) | `379f6447-6116-4be5-a44c-5404bcb1ef59` |
-| Conex?o GitHub (us-east-2) | `c323a6be-600f-432d-8135-05548d8cff36` |
+| Conexão GitHub (us-east-2) | `c323a6be-600f-432d-8135-05548d8cff36` |
 
-[Pipeline no console AWS](https://us-east-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/portfolio-landing-page/view?region=us-east-2). Cada push em main inicia Source e ValidateAndPlan. Na etapa Approve, confira o commit e os resumos de release/site nos logs privados ou BuildOutput antes de aprovar. Deploy aplica os planos salvos e verifica o dom?nio. A autoriza??o de ativa??o inicial n?o dispensa a aprova??o dos pr?ximos planos.
+[Pipeline no console AWS](https://us-east-2.console.aws.amazon.com/codesuite/codepipeline/pipelines/portfolio-landing-page/view?region=us-east-2). Cada push em main inicia Source e ValidateAndPlan. Na etapa Approve, confira o commit e os resumos de release/site nos logs privados ou BuildOutput antes de aprovar. Deploy aplica os planos salvos e verifica o domínio. A autorização de ativação inicial não dispensa a aprovação dos próximos planos.
 
-O pipeline administra somente releases e promo??o do site. Altera??es em bootstrap, permiss?es ou pipeline devem passar por planejamento administrativo Terraform e aprova??o pr?pria. Para rollback, use um commit j? publicado como release_id no state de site, gere e confira o plano, aprove e aplique o plano salvo. N?o reaplique o state de uma release anterior com arquivos de outro commit.
+O pipeline administra somente releases e promoção do site. Alterações em bootstrap, permissões ou pipeline devem passar por planejamento administrativo Terraform e aprovação própria. Para rollback, use um commit já publicado como release_id no state de site, gere e confira o plano, aprove e aplique o plano salvo. Não reaplique o state de uma release anterior com arquivos de outro commit.
